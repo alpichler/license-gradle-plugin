@@ -1,7 +1,7 @@
 plugins {
     id("java-gradle-plugin")
     id("maven-publish")
-    id("com.gradle.plugin-publish") version "1.1.0"
+    id("com.gradle.plugin-publish") version "2.0.0"
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -10,8 +10,11 @@ group = "io.cloudflight.license.gradle"
 
 autoConfigure {
     java {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
         vendorName.set("Cloudflight")
+    }
+    kotlin {
+        kotlinVersion.set(libs.versions.kotlin.get())
     }
 }
 
@@ -33,11 +36,12 @@ dependencies {
     testImplementation(libs.bundles.testImplementationDependencies)
 
     testRuntimeOnly(libs.junit.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.compileKotlin.configure {
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
+    compilerOptions {
+        optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
     }
 }
 
@@ -58,11 +62,4 @@ gradlePlugin {
 tasks.withType<Jar>() {
     from(layout.projectDirectory.file("LICENSE"))
     from(layout.projectDirectory.file("NOTICE"))
-}
-
-tasks.withType<Test> {
-    // we wanna set the java Launcher to 17 here in order to be able set higher java compatibility
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    })
 }
